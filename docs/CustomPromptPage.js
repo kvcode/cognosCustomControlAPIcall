@@ -10,6 +10,9 @@ define([], function () {
     console.log("[ApiFetcher] 🏗 Constructor called");
     this.domNode = null;
     this.m_oControlHost = null;
+    this.m_oDataStores = {};
+    this.sessionData = {};
+    this.sessionDataReady = false;
     this.history = [];
     this.maxHistory = 20;
   }
@@ -26,6 +29,77 @@ define([], function () {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // SET DATA — reads session DataStore by configured name
+  // ═══════════════════════════════════════════════════════════════════════════
+  CustomPromptPage.prototype.setData = function (oControlHost, oDataStore) {
+    console.log("[ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("[ApiFetcher] 📊 setData() called");
+
+    if (!oDataStore) {
+      console.warn("[ApiFetcher] ⚠️ oDataStore is null");
+      return;
+    }
+
+    this.m_oDataStores[oDataStore.name] = oDataStore;
+
+    console.log("[ApiFetcher] 📦 DataStore name:", oDataStore.name);
+    console.log("[ApiFetcher] 📦 DataStore index:", oDataStore.index);
+    console.log("[ApiFetcher] 📊 Row count:", oDataStore.rowCount);
+    console.log("[ApiFetcher] 📊 Column count:", oDataStore.columnCount);
+    console.log("[ApiFetcher] 📊 Column names:", oDataStore.columnNames);
+
+    var config = oControlHost.configuration || {};
+    var sessionDSName = config.sessionDataStore || "Session_Data";
+
+    console.log("[ApiFetcher] 🔍 Expected session DataStore:", sessionDSName);
+    console.log("[ApiFetcher] 🔍 Received DataStore:", oDataStore.name);
+
+    if (oDataStore.name === sessionDSName) {
+      console.log("[ApiFetcher] ✅ SESSION DataStore matched!");
+      this._extractSessionData(oDataStore);
+    } else {
+      console.log("[ApiFetcher] ── Not session DataStore, stored for later use");
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EXTRACT SESSION DATA — column names as keys, first row values
+  // ═══════════════════════════════════════════════════════════════════════════
+  CustomPromptPage.prototype._extractSessionData = function (oDataStore) {
+    this.sessionData = {};
+
+    if (oDataStore.rowCount === 0) {
+      console.warn("[ApiFetcher] ⚠️ Session DataStore has 0 rows");
+      return;
+    }
+
+    var colNames = oDataStore.columnNames;
+    console.log("[ApiFetcher] 📋 Extracting " + colNames.length + " columns:");
+
+    for (var c = 0; c < colNames.length; c++) {
+      var colName = colNames[c];
+      var rawValue = oDataStore.getCellValue(0, c);
+      var formattedValue = oDataStore.getFormattedCellValue(0, c);
+
+      this.sessionData[colName] = {
+        raw: rawValue,
+        formatted: formattedValue,
+        index: c
+      };
+
+      console.log("[ApiFetcher]   [" + c + "] " + colName + " = \"" + rawValue + "\" (fmt: \"" + formattedValue + "\")");
+    }
+
+    this.sessionDataReady = true;
+    console.log("[ApiFetcher] ✅ Session data extracted:", Object.keys(this.sessionData).length, "fields");
+
+    // Update UI if already rendered
+    if (this.domNode && this.domNode.querySelector("#af-session-panel")) {
+      this._renderSessionInfo();
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // DRAW
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype.draw = function (oControlHost) {
@@ -37,14 +111,14 @@ define([], function () {
 
     this.domNode = document.createElement("div");
     this.domNode.className = "api-fetcher-container";
-
-    // ── BUILD UI ──────────────────────────────────────────────────────────
     this.domNode.innerHTML = this._buildHTML();
     container.appendChild(this.domNode);
 
-    // ── BIND EVENTS ───────────────────────────────────────────────────────
-    this._bindEvents();
+    if (this.sessionDataReady) {
+      this._renderSessionInfo();
+    }
 
+    this._bindEvents();
     console.log("[ApiFetcher] ✅ UI rendered");
   };
 
@@ -55,22 +129,41 @@ define([], function () {
     return [
       '<div class="af-wrapper">',
 
+      // ── SESSION INFO PANEL ──
+      '<div id="af-session-panel" class="af-session-panel">',
+      '  <div class="af-session-header" id="af-session-header-bar">',
+      '    <h3 class="af-session-title">Session &amp; User Context</h3>',
+      '    <span class="af-session-badge" id="af-session-badge">Waiting...</span>',
+      '    <button class="af-session-toggle" id="af-session-toggle">\u25BC</button>',
+      '  </div>',
+      '  <div class="af-session-body" id="af-session-body">',
+      '    <table class="af-session-table" id="af-session-table">',
+      '      <thead><tr>',
+      '        <th class="af-session-th">#</th>',
+      '        <th class="af-session-th">Data Item</th>',
+      '        <th class="af-session-th">Value</th>',
+      '        <th class="af-session-th">Formatted Value</th>',
+      '      </tr></thead>',
+      '      <tbody id="af-session-tbody">',
+      '        <tr><td colspan="4" class="af-session-empty">Waiting for Session DataStore...<br>Config: <code>"sessionDataStore": "Session_Data"</code></td></tr>',
+      '      </tbody>',
+      '    </table>',
+      '    <div class="af-session-note" id="af-session-note"></div>',
+      '  </div>',
+      '</div>',
+
       // ── HEADER ──
       '<div class="af-header">',
       '  <h2 class="af-title">API Fetcher &amp; CORS Analyzer</h2>',
       '  <span class="af-subtitle">Paste URL, analyze response, headers &amp; CORS</span>',
-      "</div>",
+      '</div>',
 
       // ── INPUT SECTION ──
       '<div class="af-input-section">',
-
-      // URL row
       '<div class="af-input-row">',
       '  <label class="af-label">URL</label>',
       '  <input type="text" id="af-url" class="af-input" placeholder="https://api.example.com/endpoint?param=value" />',
-      "</div>",
-
-      // Method row
+      '</div>',
       '<div class="af-input-row">',
       '  <label class="af-label">Method</label>',
       '  <select id="af-method" class="af-select">',
@@ -79,74 +172,116 @@ define([], function () {
       '    <option value="PUT">PUT</option>',
       '    <option value="DELETE">DELETE</option>',
       '    <option value="PATCH">PATCH</option>',
-      "  </select>",
-      "</div>",
-
-      // Auth header row
+      '  </select>',
+      '</div>',
       '<div class="af-input-row">',
       '  <label class="af-label">Authorization</label>',
       '  <input type="text" id="af-auth" class="af-input" placeholder="Bearer eyJhbGciOi... (optional)" />',
-      "</div>",
-
-      // Custom headers row
+      '</div>',
       '<div class="af-input-row">',
       '  <label class="af-label">Custom Headers</label>',
       '  <textarea id="af-headers" class="af-textarea" rows="2" placeholder="Header-Name: value (one per line, optional)"></textarea>',
-      "</div>",
-
-      // Request body row
+      '</div>',
       '<div class="af-input-row">',
       '  <label class="af-label">Body</label>',
       '  <textarea id="af-body" class="af-textarea" rows="3" placeholder=\'{"key": "value"} (for POST/PUT/PATCH, optional)\'></textarea>',
-      "</div>",
-
-      // Buttons
+      '</div>',
       '<div class="af-buttons">',
       '  <button id="af-btn-fetch" class="af-btn af-btn-primary">Fetch</button>',
       '  <button id="af-btn-preflight" class="af-btn af-btn-secondary">Preflight (OPTIONS)</button>',
       '  <button id="af-btn-oauth" class="af-btn af-btn-secondary">Discover OAuth2</button>',
       '  <button id="af-btn-clear" class="af-btn af-btn-neutral">Clear</button>',
-      "</div>",
-
-      "</div>", // af-input-section
+      '</div>',
+      '</div>',
 
       // ── STATUS BAR ──
       '<div id="af-status" class="af-status af-hidden"></div>',
 
       // ── RESULTS TABS ──
       '<div class="af-results">',
-
       '<div class="af-tabs">',
       '  <button class="af-tab af-tab-active" data-tab="cors">CORS Analysis</button>',
       '  <button class="af-tab" data-tab="headers">Response Headers</button>',
       '  <button class="af-tab" data-tab="body">Response Body</button>',
       '  <button class="af-tab" data-tab="history">History (<span id="af-history-count">0</span>)</button>',
-      "</div>",
-
-      // Tab: CORS Analysis
+      '</div>',
       '<div id="af-tab-cors" class="af-tab-content af-tab-visible">',
       '  <div id="af-cors-results" class="af-pre">Run a request to see CORS analysis...</div>',
-      "</div>",
-
-      // Tab: Response Headers
+      '</div>',
       '<div id="af-tab-headers" class="af-tab-content">',
       '  <div id="af-response-headers" class="af-pre">No response yet...</div>',
-      "</div>",
-
-      // Tab: Response Body
+      '</div>',
       '<div id="af-tab-body" class="af-tab-content">',
       '  <div id="af-response-body" class="af-pre">No response yet...</div>',
-      "</div>",
-
-      // Tab: History
+      '</div>',
       '<div id="af-tab-history" class="af-tab-content">',
       '  <div id="af-history-list" class="af-pre">No requests yet...</div>',
-      "</div>",
+      '</div>',
+      '</div>',
 
-      "</div>", // af-results
+      '</div>'
+    ].join('\n');
+  };
 
-      "</div>", // af-wrapper
-    ].join("\n");
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER SESSION INFO TABLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  CustomPromptPage.prototype._renderSessionInfo = function () {
+    var tbody = this.domNode.querySelector("#af-session-tbody");
+    var badge = this.domNode.querySelector("#af-session-badge");
+    var note = this.domNode.querySelector("#af-session-note");
+    if (!tbody) return;
+
+    var keys = Object.keys(this.sessionData);
+
+    if (keys.length === 0) {
+      badge.textContent = "No Data";
+      badge.className = "af-session-badge af-badge-warning";
+      tbody.innerHTML = '<tr><td colspan="4" class="af-session-empty">DataStore matched but returned no data</td></tr>';
+      return;
+    }
+
+    badge.textContent = keys.length + " fields loaded";
+    badge.className = "af-session-badge af-badge-success";
+
+    var rows = [];
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var entry = this.sessionData[key];
+      var rawStr = (entry.raw !== null && entry.raw !== undefined) ? String(entry.raw) : "(null)";
+      var fmtStr = (entry.formatted !== null && entry.formatted !== undefined) ? String(entry.formatted) : "(null)";
+
+      var rowClass = "";
+      var keyLower = key.toLowerCase();
+      if (keyLower.indexOf("user") !== -1 || keyLower.indexOf("name") !== -1 || keyLower.indexOf("locale") !== -1) {
+        rowClass = ' class="af-session-highlight"';
+      }
+
+      rows.push(
+        '<tr' + rowClass + '>' +
+        '<td class="af-session-td af-session-idx">' + (i + 1) + '</td>' +
+        '<td class="af-session-td af-session-key">' + this._escapeHtml(key) + '</td>' +
+        '<td class="af-session-td af-session-val">' + this._escapeHtml(rawStr) + '</td>' +
+        '<td class="af-session-td af-session-fmt">' + this._escapeHtml(fmtStr) + '</td>' +
+        '</tr>'
+      );
+    }
+
+    tbody.innerHTML = rows.join("");
+
+    // Summary note — display only, no auto-injection
+    var parts = [];
+    if (this.sessionData["User_ID"]) parts.push("User: " + this.sessionData["User_ID"].raw);
+    if (this.sessionData["NameConcat"]) parts.push("Name: " + this.sessionData["NameConcat"].raw);
+    if (this.sessionData["runLocale"]) parts.push("Locale: " + this.sessionData["runLocale"].raw);
+
+    if (parts.length > 0) {
+      note.innerHTML = '<strong>Session:</strong> ' + this._escapeHtml(parts.join(" | ")) +
+        '<br><em>These values are available for manual use in Custom Headers field above.</em>';
+      note.className = "af-session-note af-session-note-active";
+    }
+
+    console.log("[ApiFetcher] \u2705 Session panel rendered:", keys.length, "fields");
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -156,27 +291,11 @@ define([], function () {
     var self = this;
     var root = this.domNode;
 
-    // Fetch button
-    root.querySelector("#af-btn-fetch").addEventListener("click", function () {
-      self._doFetch();
-    });
+    root.querySelector("#af-btn-fetch").addEventListener("click", function () { self._doFetch(); });
+    root.querySelector("#af-btn-preflight").addEventListener("click", function () { self._doPreflight(); });
+    root.querySelector("#af-btn-oauth").addEventListener("click", function () { self._doOAuthDiscovery(); });
+    root.querySelector("#af-btn-clear").addEventListener("click", function () { self._clearResults(); });
 
-    // Preflight button
-    root.querySelector("#af-btn-preflight").addEventListener("click", function () {
-      self._doPreflight();
-    });
-
-    // OAuth2 discovery button
-    root.querySelector("#af-btn-oauth").addEventListener("click", function () {
-      self._doOAuthDiscovery();
-    });
-
-    // Clear button
-    root.querySelector("#af-btn-clear").addEventListener("click", function () {
-      self._clearResults();
-    });
-
-    // Tab switching
     var tabs = root.querySelectorAll(".af-tab");
     for (var i = 0; i < tabs.length; i++) {
       tabs[i].addEventListener("click", function (e) {
@@ -184,70 +303,60 @@ define([], function () {
       });
     }
 
-    // Enter key on URL input
     root.querySelector("#af-url").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        self._doFetch();
+      if (e.key === "Enter") self._doFetch();
+    });
+
+    root.querySelector("#af-session-toggle").addEventListener("click", function () {
+      var body = root.querySelector("#af-session-body");
+      var btn = root.querySelector("#af-session-toggle");
+      if (body.classList.contains("af-session-collapsed")) {
+        body.classList.remove("af-session-collapsed");
+        btn.textContent = "\u25BC";
+      } else {
+        body.classList.add("af-session-collapsed");
+        btn.textContent = "\u25B6";
       }
     });
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MAIN FETCH
+  // MAIN FETCH — no auto-injection, only manual headers
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype._doFetch = function () {
     var self = this;
     var url = this._getVal("af-url").trim();
-
-    if (!url) {
-      this._setStatus("Please enter a URL", "error");
-      return;
-    }
+    if (!url) { this._setStatus("Please enter a URL", "error"); return; }
 
     var method = this._getVal("af-method");
     var authHeader = this._getVal("af-auth").trim();
     var customHeadersRaw = this._getVal("af-headers").trim();
     var bodyRaw = this._getVal("af-body").trim();
 
-    // Build headers
-    var headers = {};
-    headers["Accept"] = "application/json";
+    var headers = { "Accept": "application/json" };
 
-    if (authHeader) {
-      headers["Authorization"] = authHeader;
-    }
+    if (authHeader) headers["Authorization"] = authHeader;
 
+    // Parse custom headers — user controls what gets sent
     if (customHeadersRaw) {
       var lines = customHeadersRaw.split("\n");
       for (var i = 0; i < lines.length; i++) {
         var colonIdx = lines[i].indexOf(":");
         if (colonIdx > 0) {
-          var key = lines[i].substring(0, colonIdx).trim();
-          var val = lines[i].substring(colonIdx + 1).trim();
-          if (key) headers[key] = val;
+          headers[lines[i].substring(0, colonIdx).trim()] = lines[i].substring(colonIdx + 1).trim();
         }
       }
     }
 
-    // Build fetch options
-    var fetchOptions = {
-      method: method,
-      headers: headers,
-      mode: "cors",
-    };
-
-    // Add body for non-GET methods
+    var fetchOptions = { method: method, headers: headers, mode: "cors" };
     if (method !== "GET" && method !== "DELETE" && bodyRaw) {
       fetchOptions.body = bodyRaw;
-      if (!headers["Content-Type"]) {
-        headers["Content-Type"] = "application/json";
-      }
+      if (!headers["Content-Type"]) headers["Content-Type"] = "application/json";
     }
 
     this._setStatus("Fetching " + method + " " + url + " ...", "loading");
-
-    console.log("[ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("[ApiFetcher] 🚀 FETCH REQUEST");
+    console.log("[ApiFetcher] \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log("[ApiFetcher] \uD83D\uDE80 FETCH REQUEST");
     console.log("[ApiFetcher] URL:", url);
     console.log("[ApiFetcher] Method:", method);
     console.log("[ApiFetcher] Headers:", JSON.stringify(headers, null, 2));
@@ -258,168 +367,87 @@ define([], function () {
     fetch(url, fetchOptions)
       .then(function (response) {
         var elapsed = Math.round(performance.now() - startTime);
+        console.log("[ApiFetcher] \u2705 Response in " + elapsed + "ms — Status:", response.status, response.statusText);
 
-        console.log("[ApiFetcher] ✅ Response received in " + elapsed + "ms");
-        console.log("[ApiFetcher] Status:", response.status, response.statusText);
-        console.log("[ApiFetcher] Response type:", response.type);
-
-        // Extract ALL headers
         var responseHeaders = {};
         response.headers.forEach(function (value, key) {
           responseHeaders[key] = value;
           console.log("[ApiFetcher] Header: " + key + ": " + value);
         });
 
-        // Store metadata before consuming body
         var meta = {
-          url: url,
-          method: method,
-          status: response.status,
-          statusText: response.statusText,
-          type: response.type,
-          redirected: response.redirected,
-          finalUrl: response.url,
-          headers: responseHeaders,
-          elapsed: elapsed,
-          requestHeaders: headers,
-          timestamp: new Date().toISOString(),
+          url: url, method: method, status: response.status, statusText: response.statusText,
+          type: response.type, redirected: response.redirected, finalUrl: response.url,
+          headers: responseHeaders, elapsed: elapsed, requestHeaders: headers,
+          timestamp: new Date().toISOString()
         };
 
-        // Read body as text first
         return response.text().then(function (bodyText) {
           meta.bodyText = bodyText;
           meta.bodyLength = bodyText.length;
-
-          // Try parse as JSON
-          try {
-            meta.bodyJSON = JSON.parse(bodyText);
-            meta.isJSON = true;
-          } catch (e) {
-            meta.isJSON = false;
-          }
-
+          try { meta.bodyJSON = JSON.parse(bodyText); meta.isJSON = true; }
+          catch (e) { meta.isJSON = false; }
           return meta;
         });
       })
       .then(function (meta) {
         if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
-
-        console.log("[ApiFetcher] 📊 Full response metadata:", meta);
-
         self._displayResults(meta);
         self._addToHistory(meta);
-        self._setStatus(
-          meta.method + " " + meta.status + " " + meta.statusText + " — " + meta.elapsed + "ms — " + self._formatBytes(meta.bodyLength),
-          meta.status >= 200 && meta.status < 300 ? "success" : "warning"
-        );
+        self._setStatus(meta.method + " " + meta.status + " " + meta.statusText + " \u2014 " + meta.elapsed + "ms \u2014 " + self._formatBytes(meta.bodyLength),
+          meta.status >= 200 && meta.status < 300 ? "success" : "warning");
       })
       .catch(function (error) {
         if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
-
         var elapsed = Math.round(performance.now() - startTime);
-
-        console.error("[ApiFetcher] ❌ FETCH FAILED");
-        console.error("[ApiFetcher] Error:", error.message);
-        console.error("[ApiFetcher] Error type:", error.name);
-        console.error("[ApiFetcher] Full error:", error);
-
-        var errorMeta = {
-          url: url,
-          method: method,
-          status: 0,
-          statusText: "NETWORK ERROR",
-          error: error.message,
-          errorName: error.name,
-          elapsed: elapsed,
-          timestamp: new Date().toISOString(),
-          requestHeaders: headers,
-        };
-
+        console.error("[ApiFetcher] \u274C FETCH FAILED:", error.message);
+        var errorMeta = { url: url, method: method, status: 0, statusText: "NETWORK ERROR",
+          error: error.message, errorName: error.name, elapsed: elapsed,
+          timestamp: new Date().toISOString(), requestHeaders: headers };
         self._displayError(errorMeta);
         self._addToHistory(errorMeta);
-        self._setStatus("FAILED: " + error.message + " — " + elapsed + "ms", "error");
+        self._setStatus("FAILED: " + error.message + " \u2014 " + elapsed + "ms", "error");
       });
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PREFLIGHT (OPTIONS) TEST
+  // PREFLIGHT (OPTIONS)
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype._doPreflight = function () {
     var self = this;
     var url = this._getVal("af-url").trim();
+    if (!url) { this._setStatus("Enter a URL for preflight", "error"); return; }
 
-    if (!url) {
-      this._setStatus("Please enter a URL for preflight test", "error");
-      return;
-    }
-
-    this._setStatus("Sending OPTIONS preflight to " + url + " ...", "loading");
-
-    console.log("[ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("[ApiFetcher] 🔍 PREFLIGHT (OPTIONS) REQUEST");
-    console.log("[ApiFetcher] URL:", url);
-
+    this._setStatus("OPTIONS preflight to " + url + " ...", "loading");
+    console.log("[ApiFetcher] \uD83D\uDD0D PREFLIGHT (OPTIONS):", url);
     var startTime = performance.now();
 
     fetch(url, {
-      method: "OPTIONS",
-      mode: "cors",
-      headers: {
-        "Access-Control-Request-Method": "GET",
-        "Access-Control-Request-Headers": "Authorization, Content-Type",
-      },
+      method: "OPTIONS", mode: "cors",
+      headers: { "Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "Authorization, Content-Type" }
     })
-      .then(function (response) {
-        var elapsed = Math.round(performance.now() - startTime);
-
-        var responseHeaders = {};
-        response.headers.forEach(function (value, key) {
-          responseHeaders[key] = value;
-        });
-
-        var meta = {
-          url: url,
-          method: "OPTIONS",
-          status: response.status,
-          statusText: response.statusText,
-          type: response.type,
-          headers: responseHeaders,
-          elapsed: elapsed,
-          timestamp: new Date().toISOString(),
-          isPreflight: true,
-        };
-
-        return response.text().then(function (bodyText) {
-          meta.bodyText = bodyText;
-          return meta;
-        });
-      })
-      .then(function (meta) {
-        if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
-        self._displayResults(meta);
-        self._addToHistory(meta);
-        self._setStatus("OPTIONS " + meta.status + " " + meta.statusText + " — " + meta.elapsed + "ms", "success");
-      })
-      .catch(function (error) {
-        if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
-        var elapsed = Math.round(performance.now() - startTime);
-
-        console.error("[ApiFetcher] ❌ PREFLIGHT FAILED:", error.message);
-
-        var errorMeta = {
-          url: url,
-          method: "OPTIONS",
-          status: 0,
-          error: error.message,
-          elapsed: elapsed,
-          timestamp: new Date().toISOString(),
-          isPreflight: true,
-        };
-
-        self._displayError(errorMeta);
-        self._addToHistory(errorMeta);
-        self._setStatus("PREFLIGHT FAILED: " + error.message, "error");
-      });
+    .then(function (response) {
+      var elapsed = Math.round(performance.now() - startTime);
+      var rh = {}; response.headers.forEach(function (v, k) { rh[k] = v; });
+      var meta = { url: url, method: "OPTIONS", status: response.status, statusText: response.statusText,
+        type: response.type, headers: rh, elapsed: elapsed, timestamp: new Date().toISOString(), isPreflight: true };
+      return response.text().then(function (t) { meta.bodyText = t; return meta; });
+    })
+    .then(function (meta) {
+      if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
+      self._displayResults(meta);
+      self._addToHistory(meta);
+      self._setStatus("OPTIONS " + meta.status + " " + meta.statusText + " \u2014 " + meta.elapsed + "ms", "success");
+    })
+    .catch(function (error) {
+      if (self.m_oControlHost && self.m_oControlHost.isDestroyed) return;
+      var elapsed = Math.round(performance.now() - startTime);
+      var em = { url: url, method: "OPTIONS", status: 0, error: error.message, elapsed: elapsed,
+        timestamp: new Date().toISOString(), isPreflight: true };
+      self._displayError(em);
+      self._addToHistory(em);
+      self._setStatus("PREFLIGHT FAILED: " + error.message, "error");
+    });
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -428,65 +456,32 @@ define([], function () {
   CustomPromptPage.prototype._doOAuthDiscovery = function () {
     var self = this;
     var url = this._getVal("af-url").trim();
+    if (!url) { this._setStatus("Enter a URL for OAuth2 discovery", "error"); return; }
 
-    if (!url) {
-      this._setStatus("Please enter a URL for OAuth2 discovery", "error");
-      return;
-    }
-
-    // Extract base URL
     var baseUrl;
-    try {
-      var parsed = new URL(url);
-      baseUrl = parsed.origin;
-    } catch (e) {
-      this._setStatus("Invalid URL: " + e.message, "error");
-      return;
-    }
+    try { baseUrl = new URL(url).origin; }
+    catch (e) { this._setStatus("Invalid URL: " + e.message, "error"); return; }
 
     var discoveryUrls = [
       baseUrl + "/.well-known/openid-configuration",
-      baseUrl + "/.well-known/oauth-authorization-server",
+      baseUrl + "/.well-known/oauth-authorization-server"
     ];
 
-    this._setStatus("Discovering OAuth2 endpoints on " + baseUrl + " ...", "loading");
+    this._setStatus("Discovering OAuth2 on " + baseUrl + " ...", "loading");
+    console.log("[ApiFetcher] \uD83D\uDD11 OAUTH2 DISCOVERY:", discoveryUrls);
 
-    console.log("[ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("[ApiFetcher] 🔑 OAUTH2 DISCOVERY");
-    console.log("[ApiFetcher] Base URL:", baseUrl);
-    console.log("[ApiFetcher] Trying:", discoveryUrls);
-
-    var results = [];
-    var completed = 0;
-
-    discoveryUrls.forEach(function (discoveryUrl, idx) {
-      fetch(discoveryUrl, { mode: "cors" })
-        .then(function (response) {
-          console.log("[ApiFetcher] Discovery [" + idx + "] " + discoveryUrl + " → " + response.status);
-          return response.text().then(function (text) {
-            var json = null;
-            try {
-              json = JSON.parse(text);
-            } catch (e) {
-              /* not JSON */
-            }
-            results[idx] = {
-              url: discoveryUrl,
-              status: response.status,
-              found: response.status === 200 && json !== null,
-              data: json,
-              raw: text,
-            };
+    var results = [], completed = 0;
+    discoveryUrls.forEach(function (dUrl, idx) {
+      fetch(dUrl, { mode: "cors" })
+        .then(function (r) {
+          console.log("[ApiFetcher] Discovery [" + idx + "] " + dUrl + " \u2192 " + r.status);
+          return r.text().then(function (t) {
+            var j = null; try { j = JSON.parse(t); } catch (e) {}
+            results[idx] = { url: dUrl, status: r.status, found: r.status === 200 && j !== null, data: j, raw: t };
           });
         })
-        .catch(function (error) {
-          console.log("[ApiFetcher] Discovery [" + idx + "] FAILED:", error.message);
-          results[idx] = {
-            url: discoveryUrl,
-            status: 0,
-            found: false,
-            error: error.message,
-          };
+        .catch(function (err) {
+          results[idx] = { url: dUrl, status: 0, found: false, error: err.message };
         })
         .finally(function () {
           completed++;
@@ -502,348 +497,136 @@ define([], function () {
   // DISPLAY RESULTS
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype._displayResults = function (meta) {
-    // ── CORS Analysis ──
     this._displayCORSAnalysis(meta);
-
-    // ── Response Headers ──
     this._displayResponseHeaders(meta);
-
-    // ── Response Body ──
     this._displayResponseBody(meta);
-
-    // Switch to CORS tab
     this._switchTab("cors");
   };
 
-  // ── CORS ANALYSIS ──────────────────────────────────────────────────────
   CustomPromptPage.prototype._displayCORSAnalysis = function (meta) {
     var el = this.domNode.querySelector("#af-cors-results");
-    var lines = [];
+    var L = [];
 
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("  CORS ANALYSIS — " + meta.method + " " + meta.url);
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("");
-
-    // Status overview
-    lines.push("▸ HTTP Status:     " + meta.status + " " + (meta.statusText || ""));
-    lines.push("▸ Response Type:   " + (meta.type || "N/A"));
-    if (meta.redirected) {
-      lines.push("▸ Redirected:      YES → " + meta.finalUrl);
-    }
-    if (meta.elapsed !== undefined) {
-      lines.push("▸ Time:            " + meta.elapsed + "ms");
-    }
-    lines.push("");
+    L.push("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+    L.push("  CORS ANALYSIS \u2014 " + meta.method + " " + meta.url);
+    L.push("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+    L.push("");
+    L.push("\u25B8 HTTP Status:     " + meta.status + " " + (meta.statusText || ""));
+    L.push("\u25B8 Response Type:   " + (meta.type || "N/A"));
+    if (meta.redirected) L.push("\u25B8 Redirected:      YES \u2192 " + meta.finalUrl);
+    if (meta.elapsed !== undefined) L.push("\u25B8 Time:            " + meta.elapsed + "ms");
+    L.push("");
 
     if (meta.error) {
-      lines.push("╔═══════════════════════════════════════════════╗");
-      lines.push("║  ❌ REQUEST FAILED — LIKELY CORS BLOCKED      ║");
-      lines.push("╚═══════════════════════════════════════════════╝");
-      lines.push("");
-      lines.push("Error: " + meta.error);
-      lines.push("");
-      lines.push("This typically means:");
-      lines.push("  1. Server has NO Access-Control-Allow-Origin header");
-      lines.push("  2. Server does not allow this origin");
-      lines.push("  3. Server is down or unreachable");
-      lines.push("  4. DNS resolution failed");
-      lines.push("  5. SSL/TLS certificate issue");
-      lines.push("");
-      lines.push("NEXT STEPS:");
-      lines.push("  • Try the Preflight (OPTIONS) button");
-      lines.push("  • Check browser DevTools → Network tab for more detail");
-      lines.push("  • Test the URL directly in browser address bar");
-      lines.push("  • Ask API team about CORS configuration");
-    } else if (meta.type === "opaque") {
-      lines.push("╔═══════════════════════════════════════════════╗");
-      lines.push("║  ⚠️  OPAQUE RESPONSE (no-cors mode)           ║");
-      lines.push("╚═══════════════════════════════════════════════╝");
-      lines.push("");
-      lines.push("Response was received but is not readable.");
-      lines.push("This means CORS headers are missing/misconfigured.");
+      L.push("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557");
+      L.push("\u2551  \u274C REQUEST FAILED \u2014 LIKELY CORS BLOCKED      \u2551");
+      L.push("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D");
+      L.push(""); L.push("Error: " + meta.error);
+      L.push(""); L.push("Possible causes:");
+      L.push("  1. No Access-Control-Allow-Origin header");
+      L.push("  2. Origin not allowed"); L.push("  3. Server unreachable");
+      L.push("  4. DNS failure"); L.push("  5. SSL/TLS issue");
     } else {
-      lines.push("── CORS Headers ─────────────────────────────────");
-      lines.push("");
-
-      var corsHeaders = [
-        { key: "access-control-allow-origin", label: "Allow-Origin", critical: true },
-        { key: "access-control-allow-methods", label: "Allow-Methods", critical: true },
-        { key: "access-control-allow-headers", label: "Allow-Headers", critical: true },
-        { key: "access-control-allow-credentials", label: "Allow-Credentials", critical: false },
-        { key: "access-control-expose-headers", label: "Expose-Headers", critical: false },
-        { key: "access-control-max-age", label: "Max-Age", critical: false },
+      L.push("\u2500\u2500 CORS Headers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+      L.push("");
+      var ch = [
+        {k:"access-control-allow-origin",l:"Allow-Origin",c:true}, {k:"access-control-allow-methods",l:"Allow-Methods",c:true},
+        {k:"access-control-allow-headers",l:"Allow-Headers",c:true}, {k:"access-control-allow-credentials",l:"Allow-Credentials",c:false},
+        {k:"access-control-expose-headers",l:"Expose-Headers",c:false}, {k:"access-control-max-age",l:"Max-Age",c:false}
       ];
-
       var hasCors = false;
-      for (var i = 0; i < corsHeaders.length; i++) {
-        var ch = corsHeaders[i];
-        var value = meta.headers ? meta.headers[ch.key] : undefined;
-        if (value !== undefined) {
-          hasCors = true;
-          lines.push("  ✅ " + ch.label + ": " + value);
-        } else if (ch.critical) {
-          lines.push("  ❌ " + ch.label + ": NOT PRESENT");
-        } else {
-          lines.push("  ── " + ch.label + ": not set");
-        }
+      for (var i = 0; i < ch.length; i++) {
+        var v = meta.headers ? meta.headers[ch[i].k] : undefined;
+        if (v !== undefined) { hasCors = true; L.push("  \u2705 " + ch[i].l + ": " + v); }
+        else if (ch[i].c) L.push("  \u274C " + ch[i].l + ": NOT PRESENT");
+        else L.push("  \u2500\u2500 " + ch[i].l + ": not set");
       }
+      L.push("");
+      L.push(hasCors ? "  \u2705 CORS HEADERS DETECTED" : "  \u26A0\uFE0F NO CORS HEADERS (may be same-origin)");
 
-      lines.push("");
+      L.push(""); L.push("\u2500\u2500 Authentication \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"); L.push("");
+      var wa = meta.headers ? meta.headers["www-authenticate"] : undefined;
+      if (wa) {
+        L.push("  WWW-Authenticate: " + wa);
+        if (wa.toLowerCase().indexOf("bearer") !== -1) L.push("  \u2192 OAuth2 Bearer token expected");
+        if (wa.toLowerCase().indexOf("basic") !== -1) L.push("  \u2192 Basic auth accepted");
+        if (wa.toLowerCase().indexOf("negotiate") !== -1) L.push("  \u2192 Kerberos/SPNEGO");
+      } else if (meta.status === 401) L.push("  \u26A0\uFE0F 401 without WWW-Authenticate");
+      else if (meta.status === 403) L.push("  \u26A0\uFE0F 403 Forbidden");
+      else L.push("  No auth challenges in response.");
 
-      if (hasCors) {
-        lines.push("╔═══════════════════════════════════════════════╗");
-        lines.push("║  ✅ CORS HEADERS DETECTED                     ║");
-        lines.push("╚═══════════════════════════════════════════════╝");
-      } else {
-        lines.push("╔═══════════════════════════════════════════════╗");
-        lines.push("║  ⚠️  NO CORS HEADERS IN RESPONSE              ║");
-        lines.push("╚═══════════════════════════════════════════════╝");
-        lines.push("");
-        lines.push("NOTE: If the request succeeded (2xx) without CORS headers,");
-        lines.push("the API might be on the same origin as Cognos.");
-      }
-
-      // ── Auth Analysis ──
-      lines.push("");
-      lines.push("── Authentication Analysis ──────────────────────");
-      lines.push("");
-
-      var wwwAuth = meta.headers ? meta.headers["www-authenticate"] : undefined;
-      if (wwwAuth) {
-        lines.push("  WWW-Authenticate: " + wwwAuth);
-        lines.push("");
-        if (wwwAuth.toLowerCase().indexOf("bearer") !== -1) {
-          lines.push("  → Server expects OAuth2 Bearer token");
-          lines.push("  → Try the 'Discover OAuth2' button");
-        }
-        if (wwwAuth.toLowerCase().indexOf("basic") !== -1) {
-          lines.push("  → Server accepts Basic authentication");
-        }
-        if (wwwAuth.toLowerCase().indexOf("negotiate") !== -1) {
-          lines.push("  → Server uses Kerberos/SPNEGO (Windows auth)");
-        }
-      } else if (meta.status === 401) {
-        lines.push("  ⚠️  401 Unauthorized but no WWW-Authenticate header");
-        lines.push("  → Try adding Authorization header manually");
-      } else if (meta.status === 403) {
-        lines.push("  ⚠️  403 Forbidden — you authenticated but lack permissions");
-      } else {
-        lines.push("  No authentication challenges detected in response.");
-      }
-
-      // ── Content Analysis ──
-      lines.push("");
-      lines.push("── Content Analysis ────────────────────────────");
-      lines.push("");
-      var contentType = meta.headers ? meta.headers["content-type"] : undefined;
-      lines.push("  Content-Type: " + (contentType || "not specified"));
-      lines.push("  Body size:    " + (meta.bodyLength !== undefined ? this._formatBytes(meta.bodyLength) : "N/A"));
-      lines.push("  Is JSON:      " + (meta.isJSON ? "YES" : "NO"));
+      L.push(""); L.push("\u2500\u2500 Content \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"); L.push("");
+      L.push("  Content-Type: " + (meta.headers ? (meta.headers["content-type"] || "N/A") : "N/A"));
+      L.push("  Body size:    " + (meta.bodyLength !== undefined ? this._formatBytes(meta.bodyLength) : "N/A"));
+      L.push("  Is JSON:      " + (meta.isJSON ? "YES" : "NO"));
     }
 
-    el.textContent = lines.join("\n");
-
-    // Also log full analysis to console
-    console.log("[ApiFetcher] 📊 CORS ANALYSIS:");
-    console.log(lines.join("\n"));
+    el.textContent = L.join("\n");
+    console.log("[ApiFetcher] CORS ANALYSIS:\n" + L.join("\n"));
   };
 
-  // ── RESPONSE HEADERS ──────────────────────────────────────────────────
   CustomPromptPage.prototype._displayResponseHeaders = function (meta) {
     var el = this.domNode.querySelector("#af-response-headers");
-    var lines = [];
-
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("  RESPONSE HEADERS");
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("");
-    lines.push("HTTP " + meta.status + " " + (meta.statusText || ""));
-    lines.push("Response type: " + (meta.type || "N/A"));
-    lines.push("");
-
+    var L = ["HTTP " + meta.status + " " + (meta.statusText || ""), "Type: " + (meta.type || "N/A"), ""];
     if (meta.headers) {
-      var keys = Object.keys(meta.headers).sort();
-      for (var i = 0; i < keys.length; i++) {
-        var prefix = "  ";
-        // Highlight CORS and auth headers
-        if (keys[i].indexOf("access-control") === 0) {
-          prefix = "★ ";
-        } else if (keys[i] === "www-authenticate" || keys[i] === "authorization") {
-          prefix = "🔑";
-        }
-        lines.push(prefix + keys[i] + ": " + meta.headers[keys[i]]);
+      var ks = Object.keys(meta.headers).sort();
+      for (var i = 0; i < ks.length; i++) {
+        var pfx = ks[i].indexOf("access-control") === 0 ? "\u2605 " : "  ";
+        L.push(pfx + ks[i] + ": " + meta.headers[ks[i]]);
       }
-    } else {
-      lines.push("  (no headers available — request may have failed)");
     }
-
-    lines.push("");
-    lines.push("── REQUEST HEADERS SENT ────────────────────────");
-    lines.push("");
+    L.push(""); L.push("\u2500\u2500 REQUEST HEADERS SENT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"); L.push("");
     if (meta.requestHeaders) {
-      var reqKeys = Object.keys(meta.requestHeaders);
-      for (var j = 0; j < reqKeys.length; j++) {
-        lines.push("  " + reqKeys[j] + ": " + meta.requestHeaders[reqKeys[j]]);
-      }
+      var rk = Object.keys(meta.requestHeaders);
+      for (var j = 0; j < rk.length; j++) L.push("  " + rk[j] + ": " + meta.requestHeaders[rk[j]]);
     }
-
-    el.textContent = lines.join("\n");
+    el.textContent = L.join("\n");
   };
 
-  // ── RESPONSE BODY ──────────────────────────────────────────────────────
   CustomPromptPage.prototype._displayResponseBody = function (meta) {
     var el = this.domNode.querySelector("#af-response-body");
-
-    if (!meta.bodyText && !meta.error) {
-      el.textContent = "(empty response body)";
-      return;
-    }
-
-    if (meta.error) {
-      el.textContent = "Request failed: " + meta.error;
-      return;
-    }
-
-    if (meta.isJSON) {
-      try {
-        el.textContent = JSON.stringify(meta.bodyJSON, null, 2);
-      } catch (e) {
-        el.textContent = meta.bodyText;
-      }
-    } else {
-      el.textContent = meta.bodyText;
-    }
-
-    // Truncation warning
+    if (!meta.bodyText && !meta.error) { el.textContent = "(empty)"; return; }
+    if (meta.error) { el.textContent = "Failed: " + meta.error; return; }
+    if (meta.isJSON) { try { el.textContent = JSON.stringify(meta.bodyJSON, null, 2); } catch (e) { el.textContent = meta.bodyText; } }
+    else { el.textContent = meta.bodyText; }
     if (meta.bodyLength > 50000) {
-      el.textContent = "⚠️ Large response (" + this._formatBytes(meta.bodyLength) + ") — showing first 50KB\n\n" + meta.bodyText.substring(0, 50000) + "\n\n... [TRUNCATED]";
-    }
-
-    console.log("[ApiFetcher] 📄 Response body length:", meta.bodyLength, "bytes");
-    if (meta.isJSON) {
-      console.log("[ApiFetcher] 📄 Parsed JSON:", meta.bodyJSON);
+      el.textContent = "\u26A0\uFE0F Large (" + this._formatBytes(meta.bodyLength) + ") \u2014 first 50KB\n\n" + meta.bodyText.substring(0, 50000) + "\n\n...[TRUNCATED]";
     }
   };
 
-  // ── DISPLAY ERROR ──────────────────────────────────────────────────────
   CustomPromptPage.prototype._displayError = function (errorMeta) {
     this._displayCORSAnalysis(errorMeta);
-
-    var headersEl = this.domNode.querySelector("#af-response-headers");
-    headersEl.textContent = "Request failed — no response headers available.\n\nError: " + errorMeta.error + "\nError type: " + (errorMeta.errorName || "N/A");
-
-    var bodyEl = this.domNode.querySelector("#af-response-body");
-    bodyEl.textContent = "Request failed — no response body.\n\nError: " + errorMeta.error;
-
+    this.domNode.querySelector("#af-response-headers").textContent = "Failed \u2014 " + errorMeta.error;
+    this.domNode.querySelector("#af-response-body").textContent = "Failed \u2014 " + errorMeta.error;
     this._switchTab("cors");
   };
 
-  // ── DISPLAY OAUTH2 RESULTS ─────────────────────────────────────────────
   CustomPromptPage.prototype._displayOAuthResults = function (results) {
     var el = this.domNode.querySelector("#af-cors-results");
-    var lines = [];
-
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("  OAUTH2 DISCOVERY RESULTS");
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("");
-
+    var L = ["OAUTH2 DISCOVERY RESULTS", ""];
     var foundAny = false;
-
     for (var i = 0; i < results.length; i++) {
       var r = results[i];
-      lines.push("── " + r.url);
-      lines.push("");
-
+      L.push("\u2500\u2500 " + r.url); L.push("");
       if (r.found && r.data) {
-        foundAny = true;
-        lines.push("  ✅ FOUND — OAuth2/OIDC Configuration");
-        lines.push("");
-
-        // Key endpoints
-        var fields = [
-          { key: "issuer", label: "Issuer" },
-          { key: "authorization_endpoint", label: "Authorization Endpoint" },
-          { key: "token_endpoint", label: "Token Endpoint" },
-          { key: "userinfo_endpoint", label: "UserInfo Endpoint" },
-          { key: "jwks_uri", label: "JWKS URI" },
-          { key: "revocation_endpoint", label: "Revocation Endpoint" },
-          { key: "introspection_endpoint", label: "Introspection Endpoint" },
-        ];
-
-        for (var f = 0; f < fields.length; f++) {
-          if (r.data[fields[f].key]) {
-            lines.push("  " + fields[f].label + ":");
-            lines.push("    " + r.data[fields[f].key]);
-          }
-        }
-
-        lines.push("");
-
-        // Grant types
+        foundAny = true; L.push("  \u2705 FOUND");
+        var flds = ["issuer","authorization_endpoint","token_endpoint","userinfo_endpoint","jwks_uri"];
+        for (var f = 0; f < flds.length; f++) { if (r.data[flds[f]]) L.push("  " + flds[f] + ": " + r.data[flds[f]]); }
         if (r.data.grant_types_supported) {
-          lines.push("  Supported Grant Types:");
-          for (var g = 0; g < r.data.grant_types_supported.length; g++) {
-            var grant = r.data.grant_types_supported[g];
-            var note = "";
-            if (grant === "authorization_code") note = " ← (browser-friendly with PKCE)";
-            if (grant === "client_credentials") note = " ← (server-to-server only)";
-            if (grant === "implicit") note = " ← (deprecated, avoid)";
-            if (grant === "password") note = " ← (deprecated, avoid)";
-            lines.push("    • " + grant + note);
-          }
-          lines.push("");
+          L.push("  Grant types: " + r.data.grant_types_supported.join(", "));
         }
-
-        // Response types
-        if (r.data.response_types_supported) {
-          lines.push("  Supported Response Types:");
-          lines.push("    " + r.data.response_types_supported.join(", "));
-          lines.push("");
-        }
-
-        // Scopes
-        if (r.data.scopes_supported) {
-          lines.push("  Supported Scopes:");
-          lines.push("    " + r.data.scopes_supported.join(", "));
-          lines.push("");
-        }
-
-        // Full JSON dump
-        lines.push("  ── Full Discovery Response ──");
-        lines.push(JSON.stringify(r.data, null, 2));
-      } else if (r.error) {
-        lines.push("  ❌ FAILED — " + r.error);
-        lines.push("  (CORS may be blocking this endpoint too)");
-      } else {
-        lines.push("  ❌ Not found (HTTP " + r.status + ")");
-      }
-      lines.push("");
+        if (r.data.scopes_supported) L.push("  Scopes: " + r.data.scopes_supported.join(", "));
+        L.push(""); L.push("  Full response:"); L.push(JSON.stringify(r.data, null, 2));
+      } else if (r.error) { L.push("  \u274C FAILED: " + r.error); }
+      else { L.push("  \u274C HTTP " + r.status); }
+      L.push("");
     }
-
     if (!foundAny) {
-      lines.push("╔═══════════════════════════════════════════════╗");
-      lines.push("║  No OAuth2 discovery endpoints found          ║");
-      lines.push("╚═══════════════════════════════════════════════╝");
-      lines.push("");
-      lines.push("This could mean:");
-      lines.push("  1. OAuth2 server is on a different domain");
-      lines.push("  2. Discovery endpoints are CORS-blocked");
-      lines.push("  3. Custom OAuth2 implementation without standard endpoints");
-      lines.push("");
-      lines.push("Ask the API team for:");
-      lines.push("  • Token endpoint URL");
-      lines.push("  • Authorization endpoint URL");
-      lines.push("  • Required grant type / flow");
-      lines.push("  • Client ID (if applicable)");
+      L.push("No OAuth2 endpoints found."); L.push("Ask API team for token/auth endpoints.");
     }
-
-    el.textContent = lines.join("\n");
+    el.textContent = L.join("\n");
     this._switchTab("cors");
     this._setStatus("OAuth2 discovery complete", foundAny ? "success" : "warning");
-
-    console.log("[ApiFetcher] 🔑 OAuth2 Discovery Results:", results);
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -851,139 +634,84 @@ define([], function () {
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype._addToHistory = function (meta) {
     this.history.unshift({
-      timestamp: meta.timestamp || new Date().toISOString(),
-      method: meta.method || "GET",
-      url: meta.url,
-      status: meta.status,
-      statusText: meta.statusText || "",
-      elapsed: meta.elapsed,
-      error: meta.error || null,
-      type: meta.type || null,
-      isPreflight: meta.isPreflight || false,
+      timestamp: meta.timestamp || new Date().toISOString(), method: meta.method || "GET",
+      url: meta.url, status: meta.status, statusText: meta.statusText || "",
+      elapsed: meta.elapsed, error: meta.error || null, isPreflight: meta.isPreflight || false
     });
-
-    // Trim
-    if (this.history.length > this.maxHistory) {
-      this.history = this.history.slice(0, this.maxHistory);
-    }
-
+    if (this.history.length > this.maxHistory) this.history = this.history.slice(0, this.maxHistory);
     this._renderHistory();
   };
 
   CustomPromptPage.prototype._renderHistory = function () {
     var el = this.domNode.querySelector("#af-history-list");
-    var countEl = this.domNode.querySelector("#af-history-count");
-    countEl.textContent = this.history.length;
-
-    if (this.history.length === 0) {
-      el.textContent = "No requests yet...";
-      return;
-    }
-
-    var lines = [];
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("  REQUEST HISTORY (" + this.history.length + " entries)");
-    lines.push("═══════════════════════════════════════════════════");
-    lines.push("");
-
+    this.domNode.querySelector("#af-history-count").textContent = this.history.length;
+    if (!this.history.length) { el.textContent = "No requests yet..."; return; }
+    var L = ["REQUEST HISTORY (" + this.history.length + ")", ""];
     for (var i = 0; i < this.history.length; i++) {
       var h = this.history[i];
-      var statusIcon = h.error ? "❌" : h.status >= 200 && h.status < 300 ? "✅" : "⚠️";
-      var tag = h.isPreflight ? " [PREFLIGHT]" : "";
-
-      lines.push(
-        (i + 1) + ". " + statusIcon + " " + h.method + tag + " → " + (h.error ? "FAILED" : h.status + " " + h.statusText) + " (" + h.elapsed + "ms)"
-      );
-      lines.push("   " + h.url);
-      lines.push("   " + h.timestamp);
-      if (h.error) {
-        lines.push("   Error: " + h.error);
-      }
-      lines.push("");
+      var icon = h.error ? "\u274C" : h.status >= 200 && h.status < 300 ? "\u2705" : "\u26A0\uFE0F";
+      L.push((i+1) + ". " + icon + " " + h.method + (h.isPreflight ? " [PRE]" : "") + " \u2192 " + (h.error ? "FAIL" : h.status) + " (" + h.elapsed + "ms)");
+      L.push("   " + h.url);
+      L.push("   " + h.timestamp);
+      if (h.error) L.push("   " + h.error);
+      L.push("");
     }
-
-    el.textContent = lines.join("\n");
+    el.textContent = L.join("\n");
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // UI HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
   CustomPromptPage.prototype._switchTab = function (tabName) {
-    var root = this.domNode;
-
-    // Deactivate all tabs
-    var tabs = root.querySelectorAll(".af-tab");
+    var tabs = this.domNode.querySelectorAll(".af-tab");
     for (var i = 0; i < tabs.length; i++) {
-      tabs[i].classList.remove("af-tab-active");
-      if (tabs[i].getAttribute("data-tab") === tabName) {
-        tabs[i].classList.add("af-tab-active");
-      }
+      tabs[i].classList.toggle("af-tab-active", tabs[i].getAttribute("data-tab") === tabName);
     }
-
-    // Hide all content
-    var contents = root.querySelectorAll(".af-tab-content");
-    for (var j = 0; j < contents.length; j++) {
-      contents[j].classList.remove("af-tab-visible");
-    }
-
-    // Show target
-    var target = root.querySelector("#af-tab-" + tabName);
-    if (target) {
-      target.classList.add("af-tab-visible");
-    }
+    var contents = this.domNode.querySelectorAll(".af-tab-content");
+    for (var j = 0; j < contents.length; j++) { contents[j].classList.remove("af-tab-visible"); }
+    var t = this.domNode.querySelector("#af-tab-" + tabName);
+    if (t) t.classList.add("af-tab-visible");
   };
 
-  CustomPromptPage.prototype._setStatus = function (message, type) {
+  CustomPromptPage.prototype._setStatus = function (msg, type) {
     var el = this.domNode.querySelector("#af-status");
-    el.textContent = message;
+    el.textContent = msg;
     el.className = "af-status af-status-" + type;
-    console.log("[ApiFetcher] Status [" + type + "]:", message);
+    console.log("[ApiFetcher] Status [" + type + "]:", msg);
   };
 
   CustomPromptPage.prototype._clearResults = function () {
-    this.domNode.querySelector("#af-cors-results").textContent = "Run a request to see CORS analysis...";
+    this.domNode.querySelector("#af-cors-results").textContent = "Run a request...";
     this.domNode.querySelector("#af-response-headers").textContent = "No response yet...";
     this.domNode.querySelector("#af-response-body").textContent = "No response yet...";
     this.domNode.querySelector("#af-status").className = "af-status af-hidden";
-    console.log("[ApiFetcher] 🧹 Results cleared");
   };
 
   CustomPromptPage.prototype._getVal = function (id) {
-    var el = this.domNode.querySelector("#" + id);
-    return el ? el.value : "";
+    var el = this.domNode.querySelector("#" + id); return el ? el.value : "";
   };
 
-  CustomPromptPage.prototype._formatBytes = function (bytes) {
-    if (bytes === undefined || bytes === null) return "N/A";
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  CustomPromptPage.prototype._formatBytes = function (b) {
+    if (b == null) return "N/A";
+    if (b < 1024) return b + " B"; if (b < 1048576) return (b/1024).toFixed(1) + " KB";
+    return (b/1048576).toFixed(2) + " MB";
+  };
+
+  CustomPromptPage.prototype._escapeHtml = function (s) {
+    var d = document.createElement("div"); d.textContent = s; return d.innerHTML;
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // COGNOS LIFECYCLE (passthrough for compatibility)
+  // COGNOS LIFECYCLE
   // ═══════════════════════════════════════════════════════════════════════════
-  CustomPromptPage.prototype.getParameters = function (oControlHost) {
-    console.log("[ApiFetcher] getParameters() called — returning null (no params)");
-    return null;
-  };
+  CustomPromptPage.prototype.getParameters = function () { return null; };
+  CustomPromptPage.prototype.isInValidState = function () { return true; };
 
-  CustomPromptPage.prototype.isInValidState = function (oControlHost) {
-    return true;
-  };
-
-  CustomPromptPage.prototype.setData = function (oControlHost, oDataStore) {
-    console.log("[ApiFetcher] setData() called — ignored (no DataStores needed)");
-  };
-
-  CustomPromptPage.prototype.destroy = function (oControlHost) {
-    console.log("[ApiFetcher] 🧨 destroy() called — cleaning up");
-    this.history = [];
-    if (this.domNode && this.domNode.parentNode) {
-      this.domNode.parentNode.removeChild(this.domNode);
-    }
-    this.domNode = null;
-    this.m_oControlHost = null;
+  CustomPromptPage.prototype.destroy = function () {
+    console.log("[ApiFetcher] destroy()");
+    this.history = []; this.sessionData = {}; this.sessionDataReady = false; this.m_oDataStores = {};
+    if (this.domNode && this.domNode.parentNode) this.domNode.parentNode.removeChild(this.domNode);
+    this.domNode = null; this.m_oControlHost = null;
   };
 
   return CustomPromptPage;
