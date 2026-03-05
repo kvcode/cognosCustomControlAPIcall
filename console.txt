@@ -1,0 +1,145 @@
+[ApiFetcher] Status [loading]: Fetching GET https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27 ...
+CustomPromptPage.js?v=1736447937:249 [ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CustomPromptPage.js?v=1736447937:250 [ApiFetcher] 🚀 FETCH REQUEST
+CustomPromptPage.js?v=1736447937:251 [ApiFetcher] URL: https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+CustomPromptPage.js?v=1736447937:252 [ApiFetcher] Method: GET
+CustomPromptPage.js?v=1736447937:253 [ApiFetcher] Headers: {
+  "Accept": "application/json"
+}
+rsapp.htm?v=1467884875:1  Access to fetch at 'https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27' from origin 'https://bi-ep-test.vw.vwg' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27:1   Failed to load resource: net::ERR_FAILED
+CustomPromptPage.js?v=1736447937:321  [ApiFetcher] ❌ FETCH FAILED
+(anonymous) @ CustomPromptPage.js?v=1736447937:321
+CustomPromptPage.js?v=1736447937:322  [ApiFetcher] Error: Failed to fetch
+(anonymous) @ CustomPromptPage.js?v=1736447937:322
+CustomPromptPage.js?v=1736447937:323  [ApiFetcher] Error type: TypeError
+(anonymous) @ CustomPromptPage.js?v=1736447937:323
+CustomPromptPage.js?v=1736447937:324  [ApiFetcher] Full error: TypeError: Failed to fetch
+    at CustomPromptPage._doFetch (CustomPromptPage.js?v=1736447937:258:5)
+    at HTMLButtonElement.<anonymous> (CustomPromptPage.js?v=1736447937:161:12)
+(anonymous) @ CustomPromptPage.js?v=1736447937:324
+CustomPromptPage.js?v=1736447937:648 [ApiFetcher] 📊 CORS ANALYSIS:
+CustomPromptPage.js?v=1736447937:649 ═══════════════════════════════════════════════════
+  CORS ANALYSIS — GET https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+═══════════════════════════════════════════════════
+
+▸ HTTP Status:     0 NETWORK ERROR
+▸ Response Type:   N/A
+▸ Time:            219ms
+
+╔═══════════════════════════════════════════════╗
+║  ❌ REQUEST FAILED — LIKELY CORS BLOCKED      ║
+╚═══════════════════════════════════════════════╝
+
+Error: Failed to fetch
+
+This typically means:
+  1. Server has NO Access-Control-Allow-Origin header
+  2. Server does not allow this origin
+  3. Server is down or unreachable
+  4. DNS resolution failed
+  5. SSL/TLS certificate issue
+
+NEXT STEPS:
+  • Try the Preflight (OPTIONS) button
+  • Check browser DevTools → Network tab for more detail
+  • Test the URL directly in browser address bar
+  • Ask API team about CORS configuration
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [error]: FAILED: Failed to fetch — 219ms
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [loading]: Fetching POST https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27 ...
+CustomPromptPage.js?v=1736447937:249 [ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CustomPromptPage.js?v=1736447937:250 [ApiFetcher] 🚀 FETCH REQUEST
+CustomPromptPage.js?v=1736447937:251 [ApiFetcher] URL: https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+CustomPromptPage.js?v=1736447937:252 [ApiFetcher] Method: POST
+CustomPromptPage.js?v=1736447937:253 [ApiFetcher] Headers: {
+  "Accept": "application/json"
+}
+rsapp.htm?v=1467884875:1  Access to fetch at 'https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27' from origin 'https://bi-ep-test.vw.vwg' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27:1   Failed to load resource: net::ERR_FAILED
+CustomPromptPage.js?v=1736447937:321  [ApiFetcher] ❌ FETCH FAILED
+(anonymous) @ CustomPromptPage.js?v=1736447937:321
+CustomPromptPage.js?v=1736447937:322  [ApiFetcher] Error: Failed to fetch
+(anonymous) @ CustomPromptPage.js?v=1736447937:322
+CustomPromptPage.js?v=1736447937:323  [ApiFetcher] Error type: TypeError
+(anonymous) @ CustomPromptPage.js?v=1736447937:323
+CustomPromptPage.js?v=1736447937:324  [ApiFetcher] Full error: TypeError: Failed to fetch
+    at CustomPromptPage._doFetch (CustomPromptPage.js?v=1736447937:258:5)
+    at HTMLButtonElement.<anonymous> (CustomPromptPage.js?v=1736447937:161:12)
+(anonymous) @ CustomPromptPage.js?v=1736447937:324
+CustomPromptPage.js?v=1736447937:648 [ApiFetcher] 📊 CORS ANALYSIS:
+CustomPromptPage.js?v=1736447937:649 ═══════════════════════════════════════════════════
+  CORS ANALYSIS — POST https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+═══════════════════════════════════════════════════
+
+▸ HTTP Status:     0 NETWORK ERROR
+▸ Response Type:   N/A
+▸ Time:            50ms
+
+╔═══════════════════════════════════════════════╗
+║  ❌ REQUEST FAILED — LIKELY CORS BLOCKED      ║
+╚═══════════════════════════════════════════════╝
+
+Error: Failed to fetch
+
+This typically means:
+  1. Server has NO Access-Control-Allow-Origin header
+  2. Server does not allow this origin
+  3. Server is down or unreachable
+  4. DNS resolution failed
+  5. SSL/TLS certificate issue
+
+NEXT STEPS:
+  • Try the Preflight (OPTIONS) button
+  • Check browser DevTools → Network tab for more detail
+  • Test the URL directly in browser address bar
+  • Ask API team about CORS configuration
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [error]: FAILED: Failed to fetch — 50ms
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [loading]: Sending OPTIONS preflight to https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27 ...
+CustomPromptPage.js?v=1736447937:358 [ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CustomPromptPage.js?v=1736447937:359 [ApiFetcher] 🔍 PREFLIGHT (OPTIONS) REQUEST
+CustomPromptPage.js?v=1736447937:360 [ApiFetcher] URL: https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+rsapp.htm?v=1467884875:1  Access to fetch at 'https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27' from origin 'https://bi-ep-test.vw.vwg' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: Redirect is not allowed for a preflight request.
+sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27:1   Failed to load resource: net::ERR_FAILED
+CustomPromptPage.js?v=1736447937:407  [ApiFetcher] ❌ PREFLIGHT FAILED: Failed to fetch
+(anonymous) @ CustomPromptPage.js?v=1736447937:407
+CustomPromptPage.js?v=1736447937:648 [ApiFetcher] 📊 CORS ANALYSIS:
+CustomPromptPage.js?v=1736447937:649 ═══════════════════════════════════════════════════
+  CORS ANALYSIS — OPTIONS https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/damage_cases_per_1000/?mis=1&mis=3&mis=6&mis=12&mis=24&query_date=2025-09-22&aggregation=production_month&kdnr=2706&modell_year=2024&brand_2_digit=VW&iso3_del=DEU&model_6digit=E129RP%2CE123MJ%2CE124PN%27
+═══════════════════════════════════════════════════
+
+▸ HTTP Status:     0 
+▸ Response Type:   N/A
+▸ Time:            52ms
+
+╔═══════════════════════════════════════════════╗
+║  ❌ REQUEST FAILED — LIKELY CORS BLOCKED      ║
+╚═══════════════════════════════════════════════╝
+
+Error: Failed to fetch
+
+This typically means:
+  1. Server has NO Access-Control-Allow-Origin header
+  2. Server does not allow this origin
+  3. Server is down or unreachable
+  4. DNS resolution failed
+  5. SSL/TLS certificate issue
+
+NEXT STEPS:
+  • Try the Preflight (OPTIONS) button
+  • Check browser DevTools → Network tab for more detail
+  • Test the URL directly in browser address bar
+  • Ask API team about CORS configuration
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [error]: PREFLIGHT FAILED: Failed to fetch
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [loading]: Discovering OAuth2 endpoints on https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com ...
+CustomPromptPage.js?v=1736447937:454 [ApiFetcher] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CustomPromptPage.js?v=1736447937:455 [ApiFetcher] 🔑 OAUTH2 DISCOVERY
+CustomPromptPage.js?v=1736447937:456 [ApiFetcher] Base URL: https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com
+CustomPromptPage.js?v=1736447937:457 [ApiFetcher] Trying: Array(2)
+rsapp.htm?v=1467884875:1  Access to fetch at 'https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/.well-known/openid-configuration' from origin 'https://bi-ep-test.vw.vwg' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/.well-known/openid-configuration:1   Failed to load resource: net::ERR_FAILED
+CustomPromptPage.js?v=1736447937:483 [ApiFetcher] Discovery [0] FAILED: Failed to fetch
+rsapp.htm?v=1467884875:1  Access to fetch at 'https://sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/.well-known/oauth-authorization-server' from origin 'https://bi-ep-test.vw.vwg' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+sqa-ffp-ga-bs.sqlab-app-ffp.dapc-q.ocp.vwgroup.com/.well-known/oauth-authorization-server:1   Failed to load resource: net::ERR_FAILED
+CustomPromptPage.js?v=1736447937:483 [ApiFetcher] Discovery [1] FAILED: Failed to fetch
+CustomPromptPage.js?v=1736447937:940 [ApiFetcher] Status [warning]: OAuth2 discovery complete
+CustomPromptPage.js?v=1736447937:846 [ApiFetcher] 🔑 OAuth2 Discovery Results: 
