@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   API FETCHER & CORS ANALYZER — Styles
+   Named LeftPane.css for preLoad.js compatibility (loads this filename by default)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.api-fetcher-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 13px;
+  color: #1a1a2e;
+  height: 100%;
+  overflow: auto;
+}
+
+.af-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.af-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 2px solid #2d6a9f;
+  padding-bottom: 8px;
+}
+
+.af-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d6a9f;
+}
+
+.af-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+/* ── INPUT SECTION ──────────────────────────────────────────── */
+.af-input-section {
+  background: #f8f9fb;
+  border: 1px solid #dde1e8;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.af-input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.af-label {
+  min-width: 100px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #444;
+  padding-top: 6px;
+  text-align: right;
+}
+
+.af-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #bcc3ce;
+  border-radius: 4px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 13px;
+  background: #fff;
+  color: #1a1a2e;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.af-input:focus {
+  border-color: #2d6a9f;
+  box-shadow: 0 0 0 2px rgba(45, 106, 159, 0.15);
+}
+
+.af-select {
+  padding: 6px 10px;
+  border: 1px solid #bcc3ce;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #fff;
+  color: #1a1a2e;
+  outline: none;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.af-textarea {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #bcc3ce;
+  border-radius: 4px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 12px;
+  background: #fff;
+  color: #1a1a2e;
+  outline: none;
+  resize: vertical;
+  min-height: 28px;
+  transition: border-color 0.2s;
+}
+
+.af-textarea:focus {
+  border-color: #2d6a9f;
+  box-shadow: 0 0 0 2px rgba(45, 106, 159, 0.15);
+}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.af-buttons {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  padding-left: 108px;
+}
+
+.af-btn {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.af-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.af-btn:active {
+  transform: translateY(0);
+}
+
+.af-btn-primary {
+  background: #2d6a9f;
+  color: #fff;
+}
+
+.af-btn-primary:hover {
+  background: #245a87;
+}
+
+.af-btn-secondary {
+  background: #fff;
+  color: #2d6a9f;
+  border-color: #2d6a9f;
+}
+
+.af-btn-secondary:hover {
+  background: #eef4fa;
+}
+
+.af-btn-neutral {
+  background: #fff;
+  color: #666;
+  border-color: #ccc;
+}
+
+.af-btn-neutral:hover {
+  background: #f5f5f5;
+}
+
+/* ── STATUS BAR ─────────────────────────────────────────────── */
+.af-status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+.af-hidden {
+  display: none;
+}
+
+.af-status-loading {
+  background: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffcc02;
+}
+
+.af-status-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #66bb6a;
+}
+
+.af-status-warning {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ff9800;
+}
+
+.af-status-error {
+  background: #fce4ec;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+.af-results {
+  border: 1px solid #dde1e8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.af-tabs {
+  display: flex;
+  background: #eef1f6;
+  border-bottom: 1px solid #dde1e8;
+}
+
+.af-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.af-tab:hover {
+  color: #2d6a9f;
+  background: rgba(45, 106, 159, 0.05);
+}
+
+.af-tab-active {
+  color: #2d6a9f;
+  border-bottom-color: #2d6a9f;
+  background: #fff;
+}
+
+.af-tab-content {
+  display: none;
+  padding: 0;
+}
+
+.af-tab-visible {
+  display: block;
+}
+
+/* ── PRE-FORMATTED OUTPUT ───────────────────────────────────── */
+.af-pre {
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 12px;
+  margin: 0;
+  background: #fafbfc;
+  color: #1a1a2e;
+  min-height: 120px;
+  max-height: 500px;
+  overflow: auto;
+  tab-size: 2;
+}
