@@ -1,0 +1,6 @@
+{
+  "BaseScriptPaths": {
+    "CustomPromptPage": "https://cdn.jsdelivr.net/gh/kvcode/cognosCustomControlAPIcall@main/docs/CustomPromptPage.js",
+    "LeftPaneCSS": "https://cdn.jsdelivr.net/gh/kvcode/cognosCustomControlAPIcall@main/docs/LeftPane.css"
+  }
+}
