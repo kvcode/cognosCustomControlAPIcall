@@ -1,0 +1,25 @@
+GET:
+https://jsonplaceholder.typicode.com/posts/1
+https://dog.ceo/api/breeds/list/all
+https://api.open-meteo.com/v1/forecast?latitude=42.7&longitude=25.5&current_weather=true
+https://restcountries.com/v3.1/name/bulgaria
+https://httpbin.org/get
+
+
+POST:
+URL: https://jsonplaceholder.typicode.com/posts
+Method: POST
+Body:
+
+json{"title": "test", "body": "hello", "userId": 1}
+```
+
+**TEST на auth/error responses:**
+```
+https://httpbin.org/status/401
+```
+```
+https://httpbin.org/status/403
+```
+```
+https://httpbin.org/headers
