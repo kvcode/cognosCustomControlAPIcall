@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <head>
+    <title>OAuth2 Callback</title>
+    <style>
+      body {
+        font-family: -apple-system, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background: #f0f6ff;
+      }
+      .box {
+        text-align: center;
+        padding: 40px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+      }
+      h2 {
+        margin: 0 0 10px;
+      }
+      .ok {
+        color: #2e7d32;
+      }
+      .err {
+        color: #c62828;
+      }
+      p {
+        color: #666;
+        font-size: 14px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h2 id="title">Processing...</h2>
+      <p id="msg">Sending authorization code back...</p>
+    </div>
+    <script>
+      (function () {
+        var p = new URLSearchParams(window.location.search);
+        var h = new URLSearchParams(window.location.hash.substring(1));
+        var code = p.get("code") || h.get("code");
+        var error = p.get("error") || h.get("error");
+        var errorDesc = p.get("error_description") || h.get("error_description");
+        var state = p.get("state") || h.get("state");
+        var title = document.getElementById("title");
+        var msg = document.getElementById("msg");
+        if (error) {
+          title.textContent = "Authentication Failed";
+          title.className = "err";
+          msg.textContent = error + (errorDesc ? ": " + errorDesc : "");
+          if (window.opener)
+            window.opener.postMessage(
+              { type: "oauth2_callback", error: error, error_description: errorDesc, state: state },
+              "*",
+            );
+        } else if (code) {
+          title.textContent = "Success!";
+          title.className = "ok";
+          msg.textContent = "Authorization code received. Closing...";
+          if (window.opener) {
+            window.opener.postMessage({ type: "oauth2_callback", code: code, state: state }, "*");
+            setTimeout(function () {
+              window.close();
+            }, 1500);
+          } else {
+            msg.textContent = "Code received but no opener window. Code: " + code.substring(0, 20) + "...";
+          }
+        } else {
+          title.textContent = "No Code Received";
+          title.className = "err";
+          msg.textContent = "URL has no 'code' or 'error' parameter.";
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,6 +1,4 @@
-/* API Fetcher & CORS Analyzer + Session Panel */
-/* Named LeftPane.css for preLoad.js compatibility */
-
+/* API Fetcher + OAuth2 PKCE + Session — Generic Styles */
 .api-fetcher-container {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   font-size: 13px;
@@ -17,30 +15,72 @@
   gap: 12px;
 }
 
-/* ── SESSION PANEL ─────────────────────────────────── */
-.af-session-panel {
-  background: #f0f6ff;
-  border: 1px solid #b8d4f0;
+/* Panels */
+.af-panel {
   border-radius: 6px;
   overflow: hidden;
 }
-.af-session-header {
+.af-panel-blue {
+  background: #f0f6ff;
+  border: 1px solid #b8d4f0;
+}
+.af-panel-blue .af-panel-header {
+  background: #dce9f8;
+  border-bottom: 1px solid #b8d4f0;
+}
+.af-panel-blue .af-panel-title {
+  color: #1a4a7a;
+}
+.af-panel-orange {
+  background: #fff8f0;
+  border: 1px solid #f0c8a0;
+}
+.af-panel-orange .af-panel-header {
+  background: #fae8d0;
+  border-bottom: 1px solid #f0c8a0;
+}
+.af-panel-orange .af-panel-title {
+  color: #8a5a1a;
+}
+.af-panel-steel {
+  background: #f8f9fb;
+  border: 1px solid #dde1e8;
+}
+.af-panel-steel .af-panel-header {
+  background: #eef1f6;
+  border-bottom: 1px solid #dde1e8;
+}
+.af-panel-steel .af-panel-title {
+  color: #2d6a9f;
+}
+.af-panel-header {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: #dce9f8;
-  border-bottom: 1px solid #b8d4f0;
-  cursor: default;
 }
-.af-session-title {
+.af-panel-title {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #1a4a7a;
   flex: 1;
 }
-.af-session-badge {
+.af-panel-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.af-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+.af-collapsed {
+  display: none;
+}
+
+/* Badge */
+.af-badge {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
@@ -48,146 +88,104 @@
   background: #e0e0e0;
   color: #666;
 }
-.af-badge-success {
+.af-badge-ok {
   background: #c8e6c9;
   color: #2e7d32;
 }
-.af-badge-warning {
+.af-badge-warn {
   background: #fff3e0;
   color: #e65100;
 }
-.af-session-toggle {
+
+/* Toggle */
+.af-toggle {
   background: none;
   border: none;
   font-size: 14px;
   cursor: pointer;
-  color: #1a4a7a;
+  color: inherit;
   padding: 2px 6px;
   border-radius: 4px;
 }
-.af-session-toggle:hover {
-  background: rgba(26,74,122,0.1);
-}
-.af-session-body {
-  padding: 10px;
-  transition: max-height 0.3s ease;
-}
-.af-session-collapsed {
-  display: none;
+.af-toggle:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
-/* Session Table */
+/* Session table */
 .af-session-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
 }
-.af-session-th {
+.af-th {
   text-align: left;
   padding: 6px 10px;
-  background: #c9ddf0;
-  color: #1a4a7a;
+  background: rgba(0, 0, 0, 0.06);
   font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #a8c4e0;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
-.af-session-td {
+.af-td {
   padding: 5px 10px;
-  border-bottom: 1px solid #d8e6f4;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
-.af-session-idx {
+.af-idx {
   color: #999;
   width: 30px;
   text-align: center;
 }
-.af-session-key {
+.af-key {
   font-weight: 600;
   color: #1a4a7a;
-  font-family: "Consolas", "Courier New", monospace;
+  font-family: Consolas, "Courier New", monospace;
   white-space: nowrap;
 }
-.af-session-val {
-  font-family: "Consolas", "Courier New", monospace;
-  color: #333;
+.af-val,
+.af-fmt {
+  font-family: Consolas, "Courier New", monospace;
   word-break: break-all;
 }
-.af-session-fmt {
-  font-family: "Consolas", "Courier New", monospace;
+.af-fmt {
   color: #666;
   font-size: 11px;
-  word-break: break-all;
 }
-.af-session-highlight {
-  background: #e3f0ff;
+.af-hl {
+  background: rgba(0, 100, 200, 0.06);
 }
-.af-session-highlight .af-session-key {
-  color: #0d47a1;
-}
-.af-session-empty {
+.af-empty {
   text-align: center;
   color: #888;
   padding: 16px;
   font-style: italic;
 }
-.af-session-empty code {
+.af-empty code {
   background: #e8e8e8;
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 11px;
 }
-.af-session-note {
+.af-note {
   margin-top: 8px;
   font-size: 11px;
   color: #666;
   padding: 6px 10px;
   border-radius: 4px;
 }
-.af-session-note-active {
+.af-note-active {
   background: #e8f5e9;
   color: #2e7d32;
   border: 1px solid #a5d6a7;
 }
-.af-session-note em {
-  color: #558b2f;
-}
 
-/* ── HEADER ─────────────────────────────────────────── */
-.af-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  border-bottom: 2px solid #2d6a9f;
-  padding-bottom: 8px;
-}
-.af-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d6a9f;
-}
-.af-subtitle {
-  font-size: 12px;
-  color: #666;
-}
-
-/* ── INPUT SECTION ──────────────────────────────────── */
-.af-input-section {
-  background: #f8f9fb;
-  border: 1px solid #dde1e8;
-  border-radius: 6px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.af-input-row {
+/* Inputs */
+.af-row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
-.af-label {
+.af-lbl {
   min-width: 100px;
   font-weight: 600;
   font-size: 12px;
@@ -195,54 +193,53 @@
   padding-top: 6px;
   text-align: right;
 }
-.af-input {
+.af-inp {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid #bcc3ce;
   border-radius: 4px;
-  font-family: "Consolas", "Courier New", monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-size: 13px;
   background: #fff;
   color: #1a1a2e;
   outline: none;
-  transition: border-color 0.2s;
 }
-.af-input:focus {
+.af-inp:focus {
   border-color: #2d6a9f;
-  box-shadow: 0 0 0 2px rgba(45,106,159,0.15);
+  box-shadow: 0 0 0 2px rgba(45, 106, 159, 0.15);
 }
-.af-select {
+.af-sel {
   padding: 6px 10px;
   border: 1px solid #bcc3ce;
   border-radius: 4px;
   font-size: 13px;
   background: #fff;
   cursor: pointer;
-  min-width: 100px;
+  min-width: 80px;
 }
-.af-textarea {
+.af-ta {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid #bcc3ce;
   border-radius: 4px;
-  font-family: "Consolas", "Courier New", monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-size: 12px;
   background: #fff;
   resize: vertical;
   min-height: 28px;
   outline: none;
 }
-.af-textarea:focus {
+.af-ta:focus {
   border-color: #2d6a9f;
-  box-shadow: 0 0 0 2px rgba(45,106,159,0.15);
+  box-shadow: 0 0 0 2px rgba(45, 106, 159, 0.15);
 }
 
-/* ── BUTTONS ────────────────────────────────────────── */
-.af-buttons {
+/* Buttons */
+.af-btns {
   display: flex;
   gap: 8px;
   padding-top: 4px;
-  padding-left: 108px;
+  flex-wrap: wrap;
 }
 .af-btn {
   padding: 7px 16px;
@@ -251,35 +248,101 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   white-space: nowrap;
 }
-.af-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.af-btn:active { transform: translateY(0); }
-.af-btn-primary { background: #2d6a9f; color: #fff; }
-.af-btn-primary:hover { background: #245a87; }
-.af-btn-secondary { background: #fff; color: #2d6a9f; border-color: #2d6a9f; }
-.af-btn-secondary:hover { background: #eef4fa; }
-.af-btn-neutral { background: #fff; color: #666; border-color: #ccc; }
-.af-btn-neutral:hover { background: #f5f5f5; }
+.af-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.af-btn:active {
+  transform: translateY(0);
+}
+.af-btn-p {
+  background: #2d6a9f;
+  color: #fff;
+}
+.af-btn-p:hover {
+  background: #245a87;
+}
+.af-btn-s {
+  background: #fff;
+  color: #2d6a9f;
+  border-color: #2d6a9f;
+}
+.af-btn-s:hover {
+  background: #eef4fa;
+}
+.af-btn-n {
+  background: #fff;
+  color: #666;
+  border-color: #ccc;
+}
+.af-btn-n:hover {
+  background: #f5f5f5;
+}
 
-/* ── STATUS BAR ─────────────────────────────────────── */
+/* Token box */
+.af-token-box {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+}
+.af-token-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.af-token-hdr strong {
+  flex: 1;
+  color: #2e7d32;
+}
+
+/* Status */
 .af-status {
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 13px;
   font-weight: 600;
-  font-family: "Consolas", "Courier New", monospace;
+  font-family: Consolas, "Courier New", monospace;
 }
-.af-hidden { display: none; }
-.af-status-loading { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
-.af-status-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #66bb6a; }
-.af-status-warning { background: #fff3e0; color: #e65100; border: 1px solid #ff9800; }
-.af-status-error { background: #fce4ec; color: #c62828; border: 1px solid #ef5350; }
+.af-hidden {
+  display: none;
+}
+.af-status-loading {
+  background: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffcc02;
+}
+.af-status-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #66bb6a;
+}
+.af-status-warning {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ff9800;
+}
+.af-status-error {
+  background: #fce4ec;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
 
-/* ── TABS ───────────────────────────────────────────── */
-.af-results { border: 1px solid #dde1e8; border-radius: 6px; overflow: hidden; }
-.af-tabs { display: flex; background: #eef1f6; border-bottom: 1px solid #dde1e8; }
+/* Tabs */
+.af-results {
+  border: 1px solid #dde1e8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.af-tabs {
+  display: flex;
+  background: #eef1f6;
+  border-bottom: 1px solid #dde1e8;
+}
 .af-tab {
   padding: 8px 16px;
   border: none;
@@ -289,16 +352,23 @@
   color: #666;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all 0.2s;
 }
-.af-tab:hover { color: #2d6a9f; background: rgba(45,106,159,0.05); }
-.af-tab-active { color: #2d6a9f; border-bottom-color: #2d6a9f; background: #fff; }
-.af-tab-content { display: none; }
-.af-tab-visible { display: block; }
-
-/* ── PRE OUTPUT ─────────────────────────────────────── */
+.af-tab:hover {
+  color: #2d6a9f;
+}
+.af-tab-active {
+  color: #2d6a9f;
+  border-bottom-color: #2d6a9f;
+  background: #fff;
+}
+.af-tab-content {
+  display: none;
+}
+.af-tab-visible {
+  display: block;
+}
 .af-pre {
-  font-family: "Consolas", "Courier New", monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;
